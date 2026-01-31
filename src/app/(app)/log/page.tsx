@@ -1,0 +1,288 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { saveDailyLog, saveMeal, getDailyLog, getMeals } from "./actions";
+import type { DailyLog, Meal, MealType } from "@/types/database";
+
+export default function LogPage() {
+  const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Daily log state
+  const [steps, setSteps] = useState("");
+  const [weight, setWeight] = useState("");
+  const [sleepHours, setSleepHours] = useState("");
+  const [waterGlasses, setWaterGlasses] = useState("");
+  const [exercised, setExercised] = useState(false);
+  const [exerciseType, setExerciseType] = useState("");
+
+  // Meals state
+  const [meals, setMeals] = useState<Record<MealType, { description: string; rating: number }>>({
+    breakfast: { description: "", rating: 3 },
+    lunch: { description: "", rating: 3 },
+    dinner: { description: "", rating: 3 },
+  });
+
+  // Load existing data when date changes
+  useEffect(() => {
+    async function loadData() {
+      const [dailyLog, existingMeals] = await Promise.all([
+        getDailyLog(date),
+        getMeals(date),
+      ]);
+
+      if (dailyLog) {
+        setSteps(dailyLog.steps?.toString() || "");
+        setWeight(dailyLog.weight?.toString() || "");
+        setSleepHours(dailyLog.sleep_hours?.toString() || "");
+        setWaterGlasses(dailyLog.water_glasses?.toString() || "");
+        setExercised(dailyLog.exercised || false);
+        setExerciseType(dailyLog.exercise_type || "");
+      } else {
+        setSteps("");
+        setWeight("");
+        setSleepHours("");
+        setWaterGlasses("");
+        setExercised(false);
+        setExerciseType("");
+      }
+
+      const newMeals: Record<MealType, { description: string; rating: number }> = {
+        breakfast: { description: "", rating: 3 },
+        lunch: { description: "", rating: 3 },
+        dinner: { description: "", rating: 3 },
+      };
+
+      existingMeals.forEach((meal: Meal) => {
+        newMeals[meal.meal_type] = {
+          description: meal.description,
+          rating: meal.health_rating,
+        };
+      });
+
+      setMeals(newMeals);
+    }
+
+    loadData();
+  }, [date]);
+
+  const handleSaveDailyLog = async () => {
+    setSaving(true);
+    setMessage(null);
+
+    const result = await saveDailyLog({
+      date,
+      steps: steps ? parseInt(steps) : null,
+      weight: weight ? parseFloat(weight) : null,
+      sleep_hours: sleepHours ? parseFloat(sleepHours) : null,
+      water_glasses: waterGlasses ? parseInt(waterGlasses) : null,
+      exercised,
+      exercise_type: exerciseType || null,
+    });
+
+    if (result.error) {
+      setMessage({ type: "error", text: result.error });
+    } else {
+      setMessage({ type: "success", text: "Dagelijkse gegevens opgeslagen!" });
+    }
+
+    setSaving(false);
+  };
+
+  const handleSaveMeal = async (mealType: MealType) => {
+    const meal = meals[mealType];
+    if (!meal.description.trim()) return;
+
+    setSaving(true);
+    setMessage(null);
+
+    const result = await saveMeal({
+      date,
+      meal_type: mealType,
+      description: meal.description,
+      health_rating: meal.rating,
+    });
+
+    if (result.error) {
+      setMessage({ type: "error", text: result.error });
+    } else {
+      setMessage({ type: "success", text: `${mealType === "breakfast" ? "Ontbijt" : mealType === "lunch" ? "Lunch" : "Diner"} opgeslagen!` });
+    }
+
+    setSaving(false);
+  };
+
+  const mealLabels: Record<MealType, string> = {
+    breakfast: "Ontbijt",
+    lunch: "Lunch",
+    dinner: "Diner",
+  };
+
+  return (
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dagelijkse invoer</h1>
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          className="px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+        />
+      </div>
+
+      {message && (
+        <div className={`p-3 rounded-lg ${message.type === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+          {message.text}
+        </div>
+      )}
+
+      {/* Daily Metrics */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+        <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Dagelijkse metrics</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Stappen
+            </label>
+            <input
+              type="number"
+              value={steps}
+              onChange={(e) => setSteps(e.target.value)}
+              placeholder="0"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Gewicht (kg)
+            </label>
+            <input
+              type="number"
+              step="0.1"
+              value={weight}
+              onChange={(e) => setWeight(e.target.value)}
+              placeholder="0.0"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Slaap (uren)
+            </label>
+            <input
+              type="number"
+              step="0.5"
+              value={sleepHours}
+              onChange={(e) => setSleepHours(e.target.value)}
+              placeholder="0"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Water (glazen)
+            </label>
+            <input
+              type="number"
+              value={waterGlasses}
+              onChange={(e) => setWaterGlasses(e.target.value)}
+              placeholder="0"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            />
+          </div>
+          <div className="col-span-2 md:col-span-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Gesport?
+            </label>
+            <div className="flex items-center gap-4">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={exercised}
+                  onChange={(e) => setExercised(e.target.checked)}
+                  className="w-4 h-4 text-blue-600"
+                />
+                <span className="text-gray-700 dark:text-gray-300">Ja</span>
+              </label>
+              {exercised && (
+                <input
+                  type="text"
+                  value={exerciseType}
+                  onChange={(e) => setExerciseType(e.target.value)}
+                  placeholder="Type sport"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+              )}
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={handleSaveDailyLog}
+          disabled={saving}
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+        >
+          {saving ? "Opslaan..." : "Metrics opslaan"}
+        </button>
+      </div>
+
+      {/* Meals */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+        <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Maaltijden</h2>
+        <div className="space-y-6">
+          {(["breakfast", "lunch", "dinner"] as MealType[]).map((mealType) => (
+            <div key={mealType} className="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-0 last:pb-0">
+              <h3 className="font-medium text-gray-800 dark:text-gray-200 mb-2">{mealLabels[mealType]}</h3>
+              <div className="space-y-3">
+                <textarea
+                  value={meals[mealType].description}
+                  onChange={(e) =>
+                    setMeals((prev) => ({
+                      ...prev,
+                      [mealType]: { ...prev[mealType], description: e.target.value },
+                    }))
+                  }
+                  placeholder="Wat heb je gegeten?"
+                  rows={2}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Gezondheid:</span>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((rating) => (
+                        <button
+                          key={rating}
+                          onClick={() =>
+                            setMeals((prev) => ({
+                              ...prev,
+                              [mealType]: { ...prev[mealType], rating },
+                            }))
+                          }
+                          className={`w-8 h-8 rounded-full text-sm font-medium transition-colors ${
+                            meals[mealType].rating >= rating
+                              ? "bg-green-500 text-white"
+                              : "bg-gray-200 text-gray-600 dark:bg-gray-600 dark:text-gray-300"
+                          }`}
+                        >
+                          {rating}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleSaveMeal(mealType)}
+                    disabled={saving || !meals[mealType].description.trim()}
+                    className="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    Opslaan
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
