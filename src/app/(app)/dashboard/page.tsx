@@ -18,14 +18,14 @@ export default async function DashboardPage() {
   const hasData = weekData.length > 0 || weekMeals.length > 0;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-8 pb-20 sm:pb-0">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
         <Link
           href="/log"
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="px-3 sm:px-4 py-2 bg-blue-600 text-white text-sm sm:text-base rounded-lg active:bg-blue-700 transition-colors"
         >
-          + Nieuwe invoer
+          + Invoeren
         </Link>
       </div>
 
@@ -48,7 +48,7 @@ export default async function DashboardPage() {
         <>
           {/* Stats Cards */}
           {stats && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 gap-2 sm:gap-4">
               <StatsCard
                 title="Gem. stappen"
                 value={stats.avgSteps}
@@ -76,8 +76,8 @@ export default async function DashboardPage() {
 
           {/* Week Charts */}
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Week overzicht</h2>
-            <div className="grid md:grid-cols-2 gap-4">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">Week overzicht</h2>
+            <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
               <WeekChart data={weekData} metric="steps" title="Stappen" color="#3B82F6" />
               <WeekChart data={weekData} metric="weight" title="Gewicht" color="#8B5CF6" />
               <WeekChart data={weekData} metric="sleep_hours" title="Slaap" color="#EC4899" />
@@ -88,15 +88,15 @@ export default async function DashboardPage() {
           {/* Meal Ratings */}
           {weekMeals.length > 0 && (
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Maaltijden</h2>
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">Maaltijden</h2>
               <MealRatingChart data={weekMeals} />
             </div>
           )}
 
           {/* Month Charts */}
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Maand overzicht</h2>
-            <div className="grid md:grid-cols-2 gap-4">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">Maand overzicht</h2>
+            <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
               <MonthChart data={monthData} metric="steps" title="Stappen (30 dagen)" color="#3B82F6" />
               <MonthChart data={monthData} metric="weight" title="Gewicht (30 dagen)" color="#8B5CF6" />
             </div>
