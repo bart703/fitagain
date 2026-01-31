@@ -9,6 +9,28 @@ export default function LogPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+  // Check if selected date is a Monday (for weekly weight)
+  const isMonday = new Date(date).getDay() === 1;
+
+  // Navigation helpers
+  const goToYesterday = () => {
+    const d = new Date(date);
+    d.setDate(d.getDate() - 1);
+    setDate(d.toISOString().split("T")[0]);
+  };
+
+  const goToTomorrow = () => {
+    const d = new Date(date);
+    d.setDate(d.getDate() + 1);
+    setDate(d.toISOString().split("T")[0]);
+  };
+
+  const goToToday = () => {
+    setDate(new Date().toISOString().split("T")[0]);
+  };
+
+  const isToday = date === new Date().toISOString().split("T")[0];
+
   // Daily log state
   const [steps, setSteps] = useState("");
   const [weight, setWeight] = useState("");
@@ -74,7 +96,7 @@ export default function LogPage() {
     const result = await saveDailyLog({
       date,
       steps: steps ? parseInt(steps) : null,
-      weight: weight ? parseFloat(weight) : null,
+      weight: isMonday && weight ? parseFloat(weight) : null,
       sleep_hours: sleepHours ? parseFloat(sleepHours) : null,
       water_glasses: waterGlasses ? parseInt(waterGlasses) : null,
       exercised,
@@ -121,14 +143,36 @@ export default function LogPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dagelijkse invoer</h1>
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-        />
+        <div className="flex items-center gap-2">
+          <button
+            onClick={goToYesterday}
+            className="px-3 py-2 text-sm bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300"
+          >
+            Gisteren
+          </button>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+          />
+          <button
+            onClick={goToTomorrow}
+            className="px-3 py-2 text-sm bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300"
+          >
+            Morgen
+          </button>
+          {!isToday && (
+            <button
+              onClick={goToToday}
+              className="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Vandaag
+            </button>
+          )}
+        </div>
       </div>
 
       {message && (
@@ -153,19 +197,22 @@ export default function LogPage() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Gewicht (kg)
-            </label>
-            <input
-              type="number"
-              step="0.1"
-              value={weight}
-              onChange={(e) => setWeight(e.target.value)}
-              placeholder="0.0"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            />
-          </div>
+          {isMonday && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Gewicht (kg)
+                <span className="text-xs text-gray-500 ml-1">(wekelijks)</span>
+              </label>
+              <input
+                type="number"
+                step="0.1"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                placeholder="0.0"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              />
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Slaap (uren)
