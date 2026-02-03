@@ -6,6 +6,7 @@ export interface DailyLog {
   date: string
   steps: number | null
   weight: number | null
+  waist: number | null
   sleep_hours: number | null
   water_glasses: number | null
   exercised: boolean
@@ -27,6 +28,7 @@ export interface DailyLogInsert {
   date: string
   steps?: number | null
   weight?: number | null
+  waist?: number | null
   sleep_hours?: number | null
   water_glasses?: number | null
   exercised?: boolean

@@ -40,6 +40,7 @@ export default function LogPage() {
   // Daily log state
   const [steps, setSteps] = useState("");
   const [weight, setWeight] = useState("");
+  const [waist, setWaist] = useState("");
   const [sleepHours, setSleepHours] = useState("");
   const [waterGlasses, setWaterGlasses] = useState("");
   const [exercised, setExercised] = useState(false);
@@ -63,6 +64,7 @@ export default function LogPage() {
       if (dailyLog) {
         setSteps(dailyLog.steps?.toString() || "");
         setWeight(dailyLog.weight?.toString() || "");
+        setWaist(dailyLog.waist?.toString() || "");
         setSleepHours(dailyLog.sleep_hours?.toString() || "");
         setWaterGlasses(dailyLog.water_glasses?.toString() || "");
         setExercised(dailyLog.exercised || false);
@@ -70,6 +72,7 @@ export default function LogPage() {
       } else {
         setSteps("");
         setWeight("");
+        setWaist("");
         setSleepHours("");
         setWaterGlasses("");
         setExercised(false);
@@ -103,6 +106,7 @@ export default function LogPage() {
       date,
       steps: steps ? parseInt(steps) : null,
       weight: isMonday && weight ? parseFloat(weight) : null,
+      waist: isMonday && waist ? parseFloat(waist) : null,
       sleep_hours: sleepHours ? parseFloat(sleepHours) : null,
       water_glasses: waterGlasses ? parseInt(waterGlasses) : null,
       exercised,
@@ -214,21 +218,38 @@ export default function LogPage() {
             />
           </div>
           {isMonday && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Gewicht
-                <span className="text-xs text-gray-500 ml-1">(kg)</span>
-              </label>
-              <input
-                type="number"
-                inputMode="decimal"
-                step="0.1"
-                value={weight}
-                onChange={(e) => setWeight(e.target.value)}
-                placeholder="0.0"
-                className="w-full px-3 py-3 sm:py-2 text-base border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              />
-            </div>
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Gewicht
+                  <span className="text-xs text-gray-500 ml-1">(kg)</span>
+                </label>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  value={weight}
+                  onChange={(e) => setWeight(e.target.value)}
+                  placeholder="0.0"
+                  className="w-full px-3 py-3 sm:py-2 text-base border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Buikomtrek
+                  <span className="text-xs text-gray-500 ml-1">(cm)</span>
+                </label>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.5"
+                  value={waist}
+                  onChange={(e) => setWaist(e.target.value)}
+                  placeholder="0.0"
+                  className="w-full px-3 py-3 sm:py-2 text-base border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+              </div>
+            </>
           )}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
